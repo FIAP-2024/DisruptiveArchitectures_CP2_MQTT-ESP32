@@ -1,7 +1,14 @@
-# Sensor DHT22 com ESP32 - MQTT | Node-Red - Dashboard | MQTT - ESP32 com Leds
+# Sensor DHT22 com ESP32 - MQTT | Node-Red - Dashboard | MQTT - ESP32 com LEDs
 
 ## Descrição
 Este projeto faz parte do curso de Disruptive Architectures da FIAP. O objetivo é desenvolver duas placas que comunicam com um servidor MQTT e traga as informações no Node-Red.
+
+## Link do Vídeo - Aplicação Funcional
+
+[Vídeo Sensor DHT22 com Placa ESP32 - MQTT | Node-Red - Dashboard | MQTT - Placa ESP32 com LEDs](https://youtube.com)
+
+- [Sensor DHT22 com Placa ESP32 no Wokwi](https://wokwi.com/projects/412122109943784449)
+- [Placa ESP32 com 06 LEDs no Wokwi](https://wokwi.com/projects/412299204852146177)
 
 ## Integrantes do Grupo
 - **Nome**: Guilherme Dias Gomes - **RM99577** 
