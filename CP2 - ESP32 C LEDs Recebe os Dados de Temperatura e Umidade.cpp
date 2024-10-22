@@ -16,8 +16,8 @@ int ledVermelhoTemp = 18; // LED vermelho para temperaturas maior e igual a 35°
 
 // Definição dos LEDs para umidade
 int ledVermelhoHum = 4; // LED vermelho para umidade abaixo de 20%
-int ledAmareloHum = 2; // LED amarelo para umidade maior e igual a 30% e menor que 60%
-int ledVerdeHum = 15; // LED verde para umidade maior e igual a 60%
+int ledAmareloHum = 2; // LED amarelo para umidade maior e igual a 20% e menor que 100%
+int ledVerdeHum = 15; // LED verde para umidade maior e igual a 100%
 
 // Variáveis para armazenar os dados recebidos
 float temperature; // Variável para temperatura
