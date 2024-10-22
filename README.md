@@ -3,7 +3,7 @@
 ## Descrição
 Este projeto faz parte do curso de Disruptive Architectures da FIAP. O objetivo é desenvolver duas placas que comunicam com um servidor MQTT e traga as informações no Node-Red.
 
-## Link do Vídeo - Aplicação Funcional
+## Links da Aplicação Funcional
 
 [Vídeo Sensor DHT22 com Placa ESP32 - MQTT | Node-Red - Dashboard | MQTT - Placa ESP32 com LEDs](https://youtube.com)
 
