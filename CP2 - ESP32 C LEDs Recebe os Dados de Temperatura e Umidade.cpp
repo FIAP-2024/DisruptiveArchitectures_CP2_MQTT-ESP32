@@ -1,69 +1,71 @@
+// Código para ESP32 recebendo dados de temperatura e umidade via MQTT e acionando LEDs
+
 #include <WiFi.h>
 #include <PubSubClient.h>
 
-const char* ssid = "Wokwi-GUEST";
-const char* password = "";
-const char* mqtt_server = "rm99466-mqttserver.eastus.cloudapp.azure.com";
-int port = 1883;
-String stMac;
-char mac[50];
-char clientId[50];
+// Configurações de Wi-Fi e MQTT
+const char* ssid = "Wokwi-GUEST"; // Nome da rede Wi-Fi
+const char* password = ""; // Senha da rede Wi-Fi
+const char* mqtt_server = "rm99466-mqttserver.eastus.cloudapp.azure.com"; // Endereço do servidor MQTT
+int port = 1883; // Porta do servidor MQTT
 
-// LEDs de Temperatura (Temperature)
-int ledAzulTemp = 21;
-int ledVerdeTemp = 19;
-int ledVermelhoTemp = 18;
+// Definição dos LEDs para temperatura
+int ledAzulTemp = 21; // LED azul para temperaturas abaixo de 18°C
+int ledVerdeTemp = 19; // LED verde para temperaturas maior e igual a 18°C e menor que 35°C
+int ledVermelhoTemp = 18; // LED vermelho para temperaturas maior e igual a 35°C
 
-// LEDs de Umidade (Humidity)
-int ledVermelhoHum = 4;
-int ledAmareloHum = 2;
-int ledVerdeHum = 15;
+// Definição dos LEDs para umidade
+int ledVermelhoHum = 4; // LED vermelho para umidade abaixo de 20%
+int ledAmareloHum = 2; // LED amarelo para umidade maior e igual a 30% e menor que 60%
+int ledVerdeHum = 15; // LED verde para umidade maior e igual a 60%
 
-// Variáveis para dados recebidos
-float temperature;
-float umidade;
+// Variáveis para armazenar os dados recebidos
+float temperature; // Variável para temperatura
+float umidade; // Variável para umidade
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 void setup_wifi() {
+  // Função para conectar ao Wi-Fi
   delay(10);
-
   Serial.println();
   Serial.println("Conectando ao WiFi: ");
   Serial.println(ssid);
   Serial.println();
-  
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
 
-  while (WiFi.status() != WL_CONNECTED){
+  WiFi.mode(WIFI_STA); // Configura o modo Wi-Fi do ESP32 como estação
+  WiFi.begin(ssid, password); // Inicia a conexão com o Wi-Fi
+
+  // Tenta conectar ao Wi-Fi até obter sucesso
+  while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.println("Falha ao conectar!");
   }
 
-  randomSeed(micros());
-
+  // Exibe informações de conexão
   Serial.println("");
   Serial.println("WiFi conectado");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   Serial.println();
-  stMac = WiFi.macAddress();
-  stMac.replace(":", "_");
-  Serial.println(stMac);
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  String message;
+  // Função de callback chamada quando uma mensagem MQTT é recebida
+  Serial.print("Mensagem recebida [");
+  Serial.print(topic);
+  Serial.print("]: ");
+  
+  // Imprime o payload recebido
   for (int i = 0; i < length; i++) {
-    message += (char)payload[i];
+    Serial.print((char)payload[i]);
   }
-  
-  
+  Serial.println();
+
   // Recebendo dados de temperatura
   if (String(topic) == "iotcp2rm99466/temperature") {
-    temperature = message.toFloat();
+    temperature = message.toFloat(); 
     Serial.println("Temperatura: " + String(temperature));
     handleTemperature(temperature);
   }
@@ -76,18 +78,23 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 }
 
+// Função para reconectar ao broker MQTT
 void reconnect() {
+  // Enquanto não conectar, ficará tentando conectar no broker automáticamente
   while (!client.connected()) {
-    Serial.println("Tentando conexão MQTT...");
+    Serial.println("Tentando a conexão com o MQTT");
 
+    // Gera um ID de cliente aleatório
     String clientId = "ESP32CP2RM99466Client-";
     clientId += String(random(0xffff), HEX);
 
+    // Tenta conectar ao broker MQTT
     if (client.connect(clientId.c_str())) {
       Serial.println("Conectado com sucesso!");
-      client.subscribe("iotcp2rm99466/temperature");
-      client.subscribe("iotcp2rm99466/humidity");
+      client.subscribe("iotcp2rm99466/temperature"); // Subscreve ao tópico de temperatura
+      client.subscribe("iotcp2rm99466/humidity"); // Subscreve ao tópico de umidade
     } else {
+      // Em caso de falha, imprime o código de erro e aguarda 5 segundos
       Serial.print("Falha, rc= ");
       Serial.print(client.state());
       Serial.println();
@@ -97,57 +104,65 @@ void reconnect() {
   }
 }
 
+// Função com a Lógica para acionar os LEDs de acordo com a temperatura recebida
 void handleTemperature(float temperature) {
   if (temperature >= 35) {
     digitalWrite(ledAzulTemp, LOW);
     digitalWrite(ledVerdeTemp, LOW);
-    digitalWrite(ledVermelhoTemp, HIGH);
+    digitalWrite(ledVermelhoTemp, HIGH); // Liga o LED Vermelho
   } else if (temperature >= 18 && temperature < 35) {
     digitalWrite(ledAzulTemp, LOW);
-    digitalWrite(ledVerdeTemp, HIGH);
+    digitalWrite(ledVerdeTemp, HIGH); // Liga o LED Verde
     digitalWrite(ledVermelhoTemp, LOW);
   } else {
-    digitalWrite(ledAzulTemp, HIGH);
+    digitalWrite(ledAzulTemp, HIGH); // Liga o LED azul
     digitalWrite(ledVerdeTemp, LOW);
     digitalWrite(ledVermelhoTemp, LOW);
   }
 }
 
+// Função com a Lógica para acionar os LEDs de acordo com a umidade recebida
 void handleHumidity(float umidade) {
   if (umidade >= 100) {
-    digitalWrite(ledVerdeHum, HIGH);
+    digitalWrite(ledVerdeHum, HIGH); // Liga o LED Verde
     digitalWrite(ledAmareloHum, LOW);
     digitalWrite(ledVermelhoHum, LOW);
-  } else if (umidade >= 50 && umidade < 100) {
+  } else if (umidade >= 20 && umidade < 100) {
     digitalWrite(ledVerdeHum, LOW);
-    digitalWrite(ledAmareloHum, HIGH);
+    digitalWrite(ledAmareloHum, HIGH); // Liga o LED Amarelo
     digitalWrite(ledVermelhoHum, LOW);
   } else {
     digitalWrite(ledVerdeHum, LOW);
     digitalWrite(ledAmareloHum, LOW);
-    digitalWrite(ledVermelhoHum, HIGH);
+    digitalWrite(ledVermelhoHum, HIGH); // Liga o LED Vermelho
   }
 }
 
 void setup() {
-  Serial.begin(115200);
-  
-  // Configuração dos LEDs
+  // Configuração inicial do ESP32
+  Serial.begin(115200); // Inicia a comunicação serial
+
+  // Configura os pinos dos LEDs como saída
+  // Pinos de Temperatura
   pinMode(ledAzulTemp, OUTPUT);
   pinMode(ledVerdeTemp, OUTPUT);
   pinMode(ledVermelhoTemp, OUTPUT);
+
+  // Pinos de Umidade
   pinMode(ledVermelhoHum, OUTPUT);
   pinMode(ledAmareloHum, OUTPUT);
   pinMode(ledVerdeHum, OUTPUT);
+
   
-  setup_wifi();
-  client.setServer(mqtt_server, port);
-  client.setCallback(callback);
+  setup_wifi(); // Conecta ao Wi-Fi
+  client.setServer(mqtt_server, port); // Define o servidor MQTT
+  client.setCallback(callback); // Define a função de callback
 }
 
 void loop() {
+  // Loop principal do ESP32
   if (!client.connected()) {
-    reconnect();
+    reconnect(); // Reconecta ao broker se desconectado
   }
-  client.loop();
+  client.loop(); // Mantém a conexão MQTT ativa
 }
