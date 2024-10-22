@@ -10,14 +10,14 @@ const char* mqtt_server = "rm99466-mqttserver.eastus.cloudapp.azure.com"; // End
 int port = 1883; // Porta do servidor MQTT
 
 // Definição dos LEDs para temperatura
-int ledAzulTemp = 21; // LED azul para temperaturas abaixo de 20°C
-int ledVerdeTemp = 19; // LED verde para temperaturas entre 20°C e 30°C
-int ledVermelhoTemp = 18; // LED vermelho para temperaturas acima de 30°C
+int ledAzulTemp = 21; // LED azul para temperaturas abaixo de 18°C
+int ledVerdeTemp = 19; // LED verde para temperaturas maior e igual a 18°C e menor que 35°C
+int ledVermelhoTemp = 18; // LED vermelho para temperaturas maior e igual a 35°C
 
 // Definição dos LEDs para umidade
-int ledVermelhoHum = 4; // LED vermelho para umidade abaixo de 30%
-int ledAmareloHum = 2; // LED amarelo para umidade entre 30% e 60%
-int ledVerdeHum = 15; // LED verde para umidade acima de 60%
+int ledVermelhoHum = 4; // LED vermelho para umidade abaixo de 20%
+int ledAmareloHum = 2; // LED amarelo para umidade maior e igual a 30% e menor que 60%
+int ledVerdeHum = 15; // LED verde para umidade maior e igual a 60%
 
 // Variáveis para armazenar os dados recebidos
 float temperature; // Variável para temperatura
@@ -63,46 +63,24 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   Serial.println();
 
-  // Verifica o tópico da mensagem e converte o payload para float
+  // Recebendo dados de temperatura
   if (String(topic) == "iotcp2rm99466/temperature") {
-    temperature = atof((char*)payload); // Converte o payload para temperatura
-  } else if (String(topic) == "iotcp2rm99466/humidity") {
-    umidade = atof((char*)payload); // Converte o payload para umidade
+    temperature = message.toFloat(); 
+    Serial.println("Temperatura: " + String(temperature));
+    handleTemperature(temperature);
   }
 
-  // Lógica para acionar os LEDs de acordo com a temperatura recebida
-  if (temperature < 20) {
-    digitalWrite(ledAzulTemp, HIGH); // Liga o LED azul
-    digitalWrite(ledVerdeTemp, LOW);
-    digitalWrite(ledVermelhoTemp, LOW);
-  } else if (temperature < 30) {
-    digitalWrite(ledAzulTemp, LOW);
-    digitalWrite(ledVerdeTemp, HIGH); // Liga o LED verde
-    digitalWrite(ledVermelhoTemp, LOW);
-  } else {
-    digitalWrite(ledAzulTemp, LOW);
-    digitalWrite(ledVerdeTemp, LOW);
-    digitalWrite(ledVermelhoTemp, HIGH); // Liga o LED vermelho
-  }
-
-  // Lógica para acionar os LEDs de acordo com a umidade recebida
-  if (umidade < 30) {
-    digitalWrite(ledVermelhoHum, HIGH); // Liga o LED vermelho
-    digitalWrite(ledAmareloHum, LOW);
-    digitalWrite(ledVerdeHum, LOW);
-  } else if (umidade < 60) {
-    digitalWrite(ledVermelhoHum, LOW);
-    digitalWrite(ledAmareloHum, HIGH); // Liga o LED amarelo
-    digitalWrite(ledVerdeHum, LOW);
-  } else {
-    digitalWrite(ledVermelhoHum, LOW);
-    digitalWrite(ledAmareloHum, LOW);
-    digitalWrite(ledVerdeHum, HIGH); // Liga o LED verde
+  // Recebendo dados de umidade
+  else if (String(topic) == "iotcp2rm99466/humidity") {
+    umidade = message.toFloat();
+    Serial.println("Umidade: " + String(umidade));
+    handleHumidity(umidade);
   }
 }
 
+// Função para reconectar ao broker MQTT
 void reconnect() {
-  // Função para reconectar ao broker MQTT
+  // Enquanto não conectar, ficará tentando conectar no broker automáticamente
   while (!client.connected()) {
     Serial.println("Tentando a conexão com o MQTT");
 
@@ -126,20 +104,59 @@ void reconnect() {
   }
 }
 
+// Função com a Lógica para acionar os LEDs de acordo com a temperatura recebida
+void handleTemperature(float temperature) {
+  if (temperature >= 35) {
+    digitalWrite(ledAzulTemp, LOW);
+    digitalWrite(ledVerdeTemp, LOW);
+    digitalWrite(ledVermelhoTemp, HIGH); // Liga o LED Vermelho
+  } else if (temperature >= 18 && temperature < 35) {
+    digitalWrite(ledAzulTemp, LOW);
+    digitalWrite(ledVerdeTemp, HIGH); // Liga o LED Verde
+    digitalWrite(ledVermelhoTemp, LOW);
+  } else {
+    digitalWrite(ledAzulTemp, HIGH); // Liga o LED azul
+    digitalWrite(ledVerdeTemp, LOW);
+    digitalWrite(ledVermelhoTemp, LOW);
+  }
+}
+
+// Função com a Lógica para acionar os LEDs de acordo com a umidade recebida
+void handleHumidity(float umidade) {
+  if (umidade >= 100) {
+    digitalWrite(ledVerdeHum, HIGH); // Liga o LED Verde
+    digitalWrite(ledAmareloHum, LOW);
+    digitalWrite(ledVermelhoHum, LOW);
+  } else if (umidade >= 20 && umidade < 100) {
+    digitalWrite(ledVerdeHum, LOW);
+    digitalWrite(ledAmareloHum, HIGH); // Liga o LED Amarelo
+    digitalWrite(ledVermelhoHum, LOW);
+  } else {
+    digitalWrite(ledVerdeHum, LOW);
+    digitalWrite(ledAmareloHum, LOW);
+    digitalWrite(ledVermelhoHum, HIGH); // Liga o LED Vermelho
+  }
+}
+
 void setup() {
   // Configuração inicial do ESP32
   Serial.begin(115200); // Inicia a comunicação serial
-  setup_wifi(); // Conecta ao Wi-Fi
-  client.setServer(mqtt_server, port); // Define o servidor MQTT
-  client.setCallback(callback); // Define a função de callback
 
   // Configura os pinos dos LEDs como saída
+  // Pinos de Temperatura
   pinMode(ledAzulTemp, OUTPUT);
   pinMode(ledVerdeTemp, OUTPUT);
   pinMode(ledVermelhoTemp, OUTPUT);
+
+  // Pinos de Umidade
   pinMode(ledVermelhoHum, OUTPUT);
   pinMode(ledAmareloHum, OUTPUT);
   pinMode(ledVerdeHum, OUTPUT);
+
+  
+  setup_wifi(); // Conecta ao Wi-Fi
+  client.setServer(mqtt_server, port); // Define o servidor MQTT
+  client.setCallback(callback); // Define a função de callback
 }
 
 void loop() {
