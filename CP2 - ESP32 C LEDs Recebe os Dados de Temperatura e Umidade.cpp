@@ -51,17 +51,12 @@ void setup_wifi() {
   Serial.println();
 }
 
+// Função de callback chamada quando uma mensagem MQTT é recebida
 void callback(char* topic, byte* payload, unsigned int length) {
-  // Função de callback chamada quando uma mensagem MQTT é recebida
-  Serial.print("Mensagem recebida [");
-  Serial.print(topic);
-  Serial.print("]: ");
-  
-  // Imprime o payload recebido
+  String message;
   for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
+    message += (char)payload[i];
   }
-  Serial.println();
 
   // Recebendo dados de temperatura
   if (String(topic) == "iotcp2rm99466/temperature") {
