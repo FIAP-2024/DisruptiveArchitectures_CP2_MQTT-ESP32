@@ -5,7 +5,7 @@ Este projeto faz parte do curso de Disruptive Architectures da FIAP. O objetivo 
 
 ## Links da Aplicação Funcional
 
-[Vídeo Sensor DHT22 com Placa ESP32 - MQTT | Node-Red - Dashboard | MQTT - Placa ESP32 com LEDs](https://youtube.com)
+[Vídeo Sensor DHT22 com Placa ESP32 - MQTT | Node-Red - Dashboard | MQTT - Placa ESP32 com LEDs](https://youtu.be/ESd8kuHdp3I)
 
 - [Sensor DHT22 com Placa ESP32 no Wokwi](https://wokwi.com/projects/412122109943784449)
 - [Placa ESP32 com 06 LEDs no Wokwi](https://wokwi.com/projects/412299204852146177)
